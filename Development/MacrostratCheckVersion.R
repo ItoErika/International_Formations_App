@@ -128,6 +128,15 @@ findConsecutive<-function(DeepDivePoses) {
     return(ConsecutiveList)
     }
 
+# Extract subset deepdive rows
+pullSents<-function(Hashes=ClusterData,Sentences=SubsetDeepDive) {
+    FinalMatrix<-data.frame(matrix(NA,nrow=nrow(Hashes),ncol=ncol(Sentences),dimnames=list(rownames(Hashes),colnames(Hashes))))
+    for (i in 1:nrow(Hashes)) {
+        FinalMatrix[i,]<-Sentences[which(Sentences[,"docid"]==Hashes[i,"docid"] & Sentences[,"sentid"]==as.numeric(Hashes[i,"sentid"])),]
+        }
+    return(FinalMatrix)
+    }                            
+                            
 ############################################## NNP Cluster Script ###########################################
 # Replace slashes from SubsetDeepDive words and poses columns with the word "SLASH"
 SubsetDeepDive[,"words"]<-gsub("\"","SLASH",SubsetDeepDive[,"words"])
@@ -178,11 +187,8 @@ ClusterData[,"ClusterPosition"]<-as.character(ClusterData[,"ClusterPosition"])
 ClusterData[,"docid"]<-as.character(ClusterData[,"docid"])
 ClusterData[,"sentid"]<-as.numeric(as.character(ClusterData[,"sentid"]))
     
-# Make a column for the words associated with each NNP
-# Create a vector of the number of rows in ClusterData.
-NumClusterVector<-1:nrow(ClusterData)   
 # Extract the proper SubsetDeepDive rows based on the data in ClusterData    
-SubsetDeepDiveRow<-parSapply(Cluster, NumClusterVector,function(x,y,z) which(y[,"docid"]==z[x,"docid"]&y[,"sentid"]==z[x,"sentid"]), SubsetDeepDive, ClusterData)
+SubsetDeepDiveRow<-pullSents(ClusterData,SubsetDeepDive)                                                 
 # Bind row data to ClusterData and convert it into a dataframe
 ClusterData<-cbind(ClusterData,SubsetDeepDiveRow)
 ClusterData[,"SubsetDeepDiveRow"]<-as.numeric(as.character(ClusterData[,"SubsetDeepDiveRow"]))
